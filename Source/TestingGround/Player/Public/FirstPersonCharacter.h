@@ -52,6 +52,7 @@ public:
 	TSubclassOf<class AGunActor> WeaponBlueprint;
 
 	// Attempt to fire your weapon
+	UFUNCTION(BlueprintCallable, CallInEditor, Category = Weapons, meta = (DisplayName = "GetBaseRotationOffset"))
 	void AttemptFire();
 
 protected:
