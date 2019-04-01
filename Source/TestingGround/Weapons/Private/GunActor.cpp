@@ -73,3 +73,8 @@ void AGunActor::OnFire()
 	}
 }
 
+USoundBase * AGunActor::GetFireSound()
+{
+	return FireSound;
+}
+

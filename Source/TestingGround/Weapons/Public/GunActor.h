@@ -49,5 +49,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void OnFire();
 
+	/** Getter method for the sound */
+	UFUNCTION(BlueprintCallable, Category = Weapon)
+	USoundBase* GetFireSound();
+
 
 };
