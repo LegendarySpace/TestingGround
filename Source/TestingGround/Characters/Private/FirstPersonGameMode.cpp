@@ -2,14 +2,14 @@
 
 #include "../Public/FirstPersonGameMode.h"
 #include "../Public/FirstPersonHUD.h"
-#include "../Public/ThirdPersonCharacter.h"
+#include "../Public/BaseCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 AFirstPersonGameMode::AFirstPersonGameMode()
 	: Super()
 {
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/Characters/ThirdPersonCharacter_BP"));
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/Characters/BP_Character"));
 	DefaultPawnClass = PlayerPawnClassFinder.Class;
 
 	// use our custom HUD class
