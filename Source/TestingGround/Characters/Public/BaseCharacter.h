@@ -70,6 +70,6 @@ public:
 
 	// Attempt to fire weapon
 	UFUNCTION(BlueprintCallable, Category = Weapon)
-	void AttemptFire();
+	void PullTrigger();
 };
 

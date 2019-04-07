@@ -68,11 +68,12 @@ void ABaseCharacter::BeginPlay()
 	Weapon = GetWorld()->SpawnActor<AGunActor>(WeaponClass);
 	if (Cast<AAIController>(GetController())) {
 		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+		Weapon->AnimInstance = GetMesh()->GetAnimInstance();
 	}
 	else {
 		Weapon->AttachToComponent(Mesh_Arms, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+		Weapon->AnimInstance = Mesh_Arms->GetAnimInstance();
 	}
-	Weapon->AnimInstance = Mesh_Arms->GetAnimInstance();
 } 
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,6 +85,7 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABaseCharacter::PullTrigger);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseCharacter::MoveRight);
@@ -102,14 +104,14 @@ AGunActor* ABaseCharacter::GetWeapon()
 	return Weapon;
 }
 
-void ABaseCharacter::AttemptFire()
+void ABaseCharacter::PullTrigger()
 {
 	if (Weapon == NULL) {
 		UE_LOG(LogTemp, Warning, TEXT("Weapon Missing."));
 		return;
 	}
 
-	Weapon->OnFire();
+	Weapon->TriggerDown();
 }
 
 void ABaseCharacter::TurnAtRate(float Rate)

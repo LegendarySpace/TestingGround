@@ -35,7 +35,38 @@ void AGunActor::Tick(float DeltaTime)
 
 }
 
-void AGunActor::OnFire()
+void AGunActor::TriggerDown_Implementation()
+{
+	// If valid, triggerTimer < calculated minimal delay between trigger pulls, return  
+	if (triggerTimer.IsValid()) return;
+
+	// Start triggerTimer  // Calculated must be < BurstRate * BurstInterval
+	GetWorld()->GetTimerManager().SetTimer(triggerTimer, this, &AGunActor::resetTrigger, calcMinTriggerDelay(), false);
+
+
+	if (BurstRate > 1)
+	{
+		timerArray = new FTimerHandle[BurstRate];
+	}
+
+	// Fire first round
+	OnFire();
+
+	if (timerArray != nullptr)
+	{
+		// Fire additional rounds if applicable
+		for (int32 i = 1; i < BurstRate; i++)
+		{
+			// Set delay to fire on
+			GetWorld()->GetTimerManager().SetTimer(timerArray[i], this, &AGunActor::OnFire, BurstInterval * i, false);
+		}
+
+		// Destroy timers after use
+		GetWorld()->GetTimerManager().SetTimer(timerArray[0], this, &AGunActor::destroyTimers, BurstInterval * BurstRate, false);
+	}
+}
+
+void AGunActor::OnFire_Implementation()
 {
 	// try and fire a projectile
 	if (ProjectileClass != NULL)
@@ -65,7 +96,7 @@ void AGunActor::OnFire()
 	// try and play a firing animation if specified
 	if (FireAnimation != NULL)
 	{
-		
+	
 		if (AnimInstance != NULL)
 		{
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
@@ -76,5 +107,10 @@ void AGunActor::OnFire()
 USoundBase * AGunActor::GetFireSound()
 {
 	return FireSound;
+}
+
+float AGunActor::calcMinTriggerDelay()
+{
+	return 1.0f;
 }
 

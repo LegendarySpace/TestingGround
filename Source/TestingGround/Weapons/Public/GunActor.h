@@ -32,26 +32,52 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+	UPROPERTY(EditDefaultsOnly, Category = Firing)
 	TSubclassOf<class ABallProjectile> ProjectileClass;
 
 	/** Sound to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Firing)
 	class USoundBase* FireSound;
 
 	/** AnimMontage to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Firing)
 	class UAnimMontage* FireAnimation;
 
 	class UAnimInstance* AnimInstance;
 
-	/** Fires a projectile. */
-	UFUNCTION(BlueprintCallable, Category = Weapon)
+	/** Number of projectiles to spawn per trigger pull */
+	/** ENUM { automatic = 0, semi-automatic, burst2, burst3, burst4, burst5 } */
+	UPROPERTY(EditDefaultsOnly, Category = Firing)
+	int32 BurstRate;
+
+	/** Time between projectile spawns per trigger pull */ // Applies to all Burst Rates except semi-automatic
+	UPROPERTY(EditDefaultsOnly, Category = Firing)
+	float BurstInterval;
+
+	/** Number of projectiles to spawn per trigger pull */
+	UPROPERTY(EditDefaultsOnly, Category = Firing)
+	int32 FireRate;
+
+	/** Trigger is pulled, firing process begins */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = Firing)
+	void TriggerDown();
+
+	/** Fires a projectile */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = Firing)
 	void OnFire();
 
 	/** Getter method for the sound */
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	USoundBase* GetFireSound();
 
+private:
+	FTimerHandle triggerTimer;
 
+	FTimerHandle* timerArray = nullptr;
+
+	void destroyTimers() { delete timerArray; }
+
+	void resetTrigger() { triggerTimer.Invalidate(); }
+
+	float calcMinTriggerDelay();
 };
