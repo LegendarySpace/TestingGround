@@ -3,6 +3,7 @@
 #include "../Public/GunActor.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include <math.h>
 #include "Animation/AnimInstance.h"
 #include "../Public/BallProjectile.h"
 
@@ -85,21 +86,22 @@ void AGunActor::OnFire_Implementation()
 			// spawn the projectile at the muzzle
 			World->SpawnActor<ABallProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 		}
-	}
 
-	// try and play the sound if specified
-	if (FireSound != NULL)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	}
-
-	// try and play a firing animation if specified
-	if (FireAnimation != NULL)
-	{
-	
-		if (AnimInstance != NULL)
+		// try and play the sound if specified
+		if (FireSound != NULL)
 		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
+			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+		}
+
+		// try and play a firing animation if specified
+		if (FirstPersonFireAnimation != NULL && ThirdPersonFireAnimation != NULL)
+		{
+	
+			if (FPAnimInstance != NULL && TPAnimInstance != NULL)
+			{
+				FPAnimInstance->Montage_Play(FirstPersonFireAnimation, 1.f);
+				TPAnimInstance->Montage_Play(ThirdPersonFireAnimation, 1.f);
+			}
 		}
 	}
 }
@@ -111,6 +113,22 @@ USoundBase * AGunActor::GetFireSound()
 
 float AGunActor::calcMinTriggerDelay()
 {
-	return 1.0f;
+	// round()
+	int maxTriggerPulls;
+	float minTriggerDelay, burstTime;
+
+	maxTriggerPulls = FireRate / BurstRate;
+	minTriggerDelay = 60 / maxTriggerPulls;
+	burstTime = BurstRate * BurstInterval;
+	if (burstTime < minTriggerDelay) return minTriggerDelay;
+	FireRate = recalcFireRate();
+	return burstTime;
+}
+
+int32 AGunActor::recalcFireRate()
+{
+	float burstTime = BurstRate * BurstInterval;
+	int32 maxTriggerPulls = (int32)floor(60.f / burstTime);
+	return BurstRate * maxTriggerPulls;
 }
 

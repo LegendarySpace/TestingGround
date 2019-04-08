@@ -41,22 +41,32 @@ public:
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Firing)
-	class UAnimMontage* FireAnimation;
+	class UAnimMontage* FirstPersonFireAnimation;
 
-	class UAnimInstance* AnimInstance;
+	/** AnimMontage to play each time we fire */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Firing)
+	class UAnimMontage* ThirdPersonFireAnimation;
+
+	/** First Player animInstances */
+	UPROPERTY()
+	class UAnimInstance* FPAnimInstance;
+
+	/** Third Player animInstances */
+	UPROPERTY()
+	class UAnimInstance* TPAnimInstance;
 
 	/** Number of projectiles to spawn per trigger pull */
 	/** ENUM { automatic = 0, semi-automatic, burst2, burst3, burst4, burst5 } */
 	UPROPERTY(EditDefaultsOnly, Category = Firing)
-	int32 BurstRate;
+	int32 BurstRate = 0;
 
 	/** Time between projectile spawns per trigger pull */ // Applies to all Burst Rates except semi-automatic
 	UPROPERTY(EditDefaultsOnly, Category = Firing)
-	float BurstInterval;
+	float BurstInterval = 0.2f;
 
 	/** Number of projectiles to spawn per trigger pull */
 	UPROPERTY(EditDefaultsOnly, Category = Firing)
-	int32 FireRate;
+	int32 FireRate = 120;
 
 	/** Trigger is pulled, firing process begins */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = Firing)
@@ -70,7 +80,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	USoundBase* GetFireSound();
 
+	void setFireAnimation(UAnimMontage* mon) { FireAnimation = mon; }
+
 private:
+	UAnimMontage* FireAnimation;
+
 	FTimerHandle triggerTimer;
 
 	FTimerHandle* timerArray = nullptr;
@@ -80,4 +94,6 @@ private:
 	void resetTrigger() { triggerTimer.Invalidate(); }
 
 	float calcMinTriggerDelay();
+
+	int32 recalcFireRate();
 };

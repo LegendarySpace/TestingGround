@@ -65,14 +65,18 @@ void ABaseCharacter::BeginPlay()
 	}
 
 	//Attach weapon mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
-	Weapon = GetWorld()->SpawnActor<AGunActor>(WeaponClass);
-	if (Cast<AAIController>(GetController())) {
-		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
-		Weapon->AnimInstance = GetMesh()->GetAnimInstance();
-	}
-	else {
-		Weapon->AttachToComponent(Mesh_Arms, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
-		Weapon->AnimInstance = Mesh_Arms->GetAnimInstance();
+	if (GetWorld() != NULL)
+	{
+		Weapon = GetWorld()->SpawnActor<AGunActor>(WeaponClass);
+		if (IsPlayerControlled()) {
+			Weapon->AttachToComponent(Mesh_Arms, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+			// TODO::  Also add gun skeletal mesh on third person controller (invisible to player and destroyed on depossession), make gun visible to owner only until depossession
+		}
+		else {
+			Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+		}
+		Weapon->TPAnimInstance = GetMesh()->GetAnimInstance();
+		Weapon->FPAnimInstance = Mesh_Arms->GetAnimInstance();
 	}
 } 
 
@@ -97,6 +101,16 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAxis("TurnRate", this, &ABaseCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ABaseCharacter::LookUpAtRate);
+}
+
+void ABaseCharacter::UnPossessed()
+{
+	Super::UnPossessed();
+	if (Weapon != NULL)
+	{
+		// TODO:: Consider detaching and allowing pickup || Destroying and spawning weapon pickup
+		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	}
 }
 
 AGunActor* ABaseCharacter::GetWeapon()

@@ -63,6 +63,8 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
 
+	virtual void UnPossessed() override;
+
 public:
 	// Get the weapon for blueprint
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = Weapon)
