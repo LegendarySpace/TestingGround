@@ -15,7 +15,8 @@ AGunActor::AGunActor()
 
 	// Create a gun mesh component
 	GunFrame = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunFrame"));
-	GunFrame->SetupAttachment(RootComponent);
+	//GunFrame->SetupAttachment(RootComponent);
+	SetRootComponent(GunFrame);
 
 	MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
 	MuzzleLocation->SetupAttachment(GunFrame);
