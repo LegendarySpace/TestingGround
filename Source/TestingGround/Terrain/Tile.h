@@ -34,9 +34,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
 	bool UniformScale;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
-	FVector BoundSize;
-
 	FSpawner()
 	{
 		SpawnClass = NULL;
@@ -46,7 +43,6 @@ public:
 		ScaleMax = 4;
 		RandomScale = false;
 		UniformScale = true;
-		BoundSize = FVector::ZeroVector;
 	}
 	
 	bool operator==(const FSpawner& rightValue)
@@ -75,6 +71,10 @@ class TESTINGGROUND_API ATile : public AActor
 
 private:
 	TArray<AActor*> Props = TArray<AActor*>();
+
+	const FVector TileMin = FVector(0, -2000, 0);
+
+	const FVector TileMax = FVector(4000, 2000, 0);
 	
 public:	
 	// Sets default values for this actor's properties
@@ -91,6 +91,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditDefaultsOnly, Category = setup)
+	int32 GrassCountPerTile = 3000;
+
 	UFUNCTION(BlueprintCallable, Category = setup)
 	void PlaceActors(TArray<FSpawner> ActorsToSpawn);
 
@@ -101,9 +104,9 @@ public:
 	bool FindEmptyLocation(FVector& OutLocation, float Radius);
 
 	UFUNCTION(BlueprintCallable, Category = setup)
-	AActor* PlaceActor(TSubclassOf<AActor> ToSpawn, FVector Location, float Rotation, float Scale);
+	AActor* PlaceActor(TSubclassOf<AActor> ToSpawn, FVector Location, float Rotation, FVector Scale);
 
 	UFUNCTION(BlueprintCallable, Category = setup)
-	float FindObjectRadius(TSubclassOf<AActor> ClassToCheck, FVector DeltaBounds = FVector::ZeroVector);
+	float FindObjectRadius(TSubclassOf<AActor> ClassToCheck, FVector ScaleBounds = FVector::ZeroVector);
 
 };

@@ -66,6 +66,7 @@ void AGunActor::TriggerDown_Implementation()
 		// Destroy timers after use
 		GetWorld()->GetTimerManager().SetTimer(timerArray[0], this, &AGunActor::destroyTimers, BurstInterval * BurstRate, false);
 	}
+	// TODO::TODO::TODO if !BurstRate if !triggerReleased continue firing
 }
 
 void AGunActor::OnFire_Implementation()

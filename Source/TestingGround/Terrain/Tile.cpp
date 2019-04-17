@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Tile.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -24,7 +25,6 @@ void ATile::BeginDestroy()
 void ATile::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -45,13 +45,19 @@ void ATile::PlaceActors(TArray<FSpawner> ActorsToSpawn)
 		for (size_t j = 0; j < NumberToSpawn; j++)
 		{
 			FVector SpawnPoint;
-			float Scale = SpawnInfo.RandomScale ? FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax) : 1.f;
-			// FVector Bounds = SpawnInfo.UniformScale ? {Scale*SpawnInfo.BoundSize.X, Scale*SpawnInfo.BoundSize.Y, Scale*SpawnInfo.BoundSize.Z} : {rand*SpawnInfo.BoundSize.X, rand*SpawnInfo.BoundSize.Y, rand*SpawnInfo.BoundSize.Z}
-			float Radius = FindObjectRadius(ToSpawn, SpawnInfo.BoundSize);
-			if (FindEmptyLocation(SpawnPoint, Radius*Scale))
+			int Attempts = SpawnInfo.RandomScale ? 5 : 1;
+			for (size_t i = 0; i < Attempts; i++)
 			{
-				float Rotation = FMath::FRandRange(-180, 180);
-				Props.Push(PlaceActor(ToSpawn, SpawnPoint, Rotation, Scale));
+				FVector RandomScale = SpawnInfo.UniformScale ? FVector(FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax)) : FVector(FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax), 
+							FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax), FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax));
+				FVector Scale = SpawnInfo.RandomScale ? RandomScale : FVector(1.f);
+				float Radius = FindObjectRadius(ToSpawn, Scale);
+				if (FindEmptyLocation(SpawnPoint, Radius))
+				{
+					float Rotation = FMath::FRandRange(-180, 180);
+					Props.Push(PlaceActor(ToSpawn, SpawnPoint, Rotation, FVector(Scale)));
+					break;
+				}
 			}
 		}
 	}
@@ -72,16 +78,14 @@ bool ATile::SpawnAreaClear(FVector Location, float Radius)
 
 	FColor ResultColor = HasHit?FColor::Red: FColor::Emerald;
 
-	DrawDebugSphere(GetWorld(), GlobalLocation, Radius, 10, ResultColor, true, 20);
+	// DrawDebugSphere(GetWorld(), GlobalLocation, Radius, 10, ResultColor, true, 20);
 
 	return !HasHit;
 }
 
 bool ATile::FindEmptyLocation(FVector& OutLocation, float Radius)
 {
-	FVector min = FVector(0, -2000, 0);
-	FVector max = FVector(4000, 2000, 0);
-	FBox bounds = FBox(min, max);
+	FBox bounds = FBox(TileMin, TileMax);
 	const int MAX_ATTEMPTS = 40;
 	for (size_t i = 0; i < MAX_ATTEMPTS; i++)
 	{
@@ -95,7 +99,7 @@ bool ATile::FindEmptyLocation(FVector& OutLocation, float Radius)
 	return false;
 }
 
-AActor* ATile::PlaceActor(TSubclassOf<AActor> ToSpawn, FVector Location, float Rotation, float Scale)
+AActor* ATile::PlaceActor(TSubclassOf<AActor> ToSpawn, FVector Location, float Rotation, FVector Scale)
 {
 	FRotator Rot = FRotator(0.f, Rotation, 0.f);
 	AActor* Spawned = GetWorld()->SpawnActor<AActor>(ToSpawn);
@@ -106,20 +110,18 @@ AActor* ATile::PlaceActor(TSubclassOf<AActor> ToSpawn, FVector Location, float R
 	return Spawned;
 }
 
-float ATile::FindObjectRadius(TSubclassOf<AActor> ClassToCheck, FVector DeltaBounds)
+float ATile::FindObjectRadius(TSubclassOf<AActor> ClassToCheck, FVector ScaleBounds)
 {
 	float X2, Y2, Z2, Radius;
-	if (DeltaBounds == FVector::ZeroVector)
-	{
-		/** Determine Delta from object **/
-		// Spawn Actor
-		AActor* TestObject = GetWorld()->SpawnActor<AActor>(ClassToCheck);
-		// DeltaBounds = GetBoundsExtent() - GetBoundsOrigin()
-		FVector Origin, Extent;
-		TestObject->GetActorBounds(true, Origin, Extent);
-		DeltaBounds = Extent - Origin;
-		TestObject->Destroy();
-	}
+	/** Determine Delta from object **/
+	// Spawn Actor
+	AActor* TestObject = GetWorld()->SpawnActor<AActor>(ClassToCheck);
+	// DeltaBounds = GetBoundsExtent() - GetBoundsOrigin()
+	FVector Origin, Extent;
+	TestObject->GetActorBounds(true, Origin, Extent);
+	FVector DeltaBounds = Extent - Origin;
+	DeltaBounds *= ScaleBounds;
+	TestObject->Destroy();
 	// Radius = SqRt(DeltaX^2 + DeltaY^2 + DeltaZ^2)
 	X2 = FMath::Square<float>(DeltaBounds.X);
 	Y2 = FMath::Square<float>(DeltaBounds.Y);
