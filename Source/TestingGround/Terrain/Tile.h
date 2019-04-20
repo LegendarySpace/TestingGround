@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Tile.generated.h"
 
+class UActorPool;
+
 USTRUCT(BlueprintType)
 struct FSpawner
 {
@@ -72,9 +74,9 @@ class TESTINGGROUND_API ATile : public AActor
 private:
 	TArray<AActor*> Props = TArray<AActor*>();
 
-	const FVector TileMin = FVector(0, -2000, 0);
+	UActorPool* Pool;
 
-	const FVector TileMax = FVector(4000, 2000, 0);
+	AActor* NavMeshBounds;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -84,15 +86,22 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	// Called before the actor is destroyed
-	virtual void BeginDestroy() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditDefaultsOnly, Category = setup)
-	int32 GrassCountPerTile = 3000;
+	UPROPERTY(EditDefaultsOnly, Category = Spawning)
+	FVector TileMin = FVector(0, -2000, 0);
+
+	UPROPERTY(EditDefaultsOnly, Category = Spawning)
+	FVector TileMax = FVector(4000, 2000, 0);
+
+	UFUNCTION(BlueprintCallable, Category = Tile)
+	void SetPool(UActorPool* InPool);
+
+	void PositionNavMeshBounds();
 
 	UFUNCTION(BlueprintCallable, Category = setup)
 	void PlaceActors(TArray<FSpawner> ActorsToSpawn);
@@ -108,5 +117,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = setup)
 	float FindObjectRadius(TSubclassOf<AActor> ClassToCheck, FVector ScaleBounds = FVector::ZeroVector);
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = Tile)
+	FTransform GetAttachLocation();
 
 };

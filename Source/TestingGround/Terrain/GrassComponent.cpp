@@ -33,6 +33,7 @@ void UGrassComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 
 void UGrassComponent::SpawnGrass()
 {
+	// TODO:: Use Sphere Cast to aviod spawning in/on already spawned actors
 	for (size_t i = 0; i < SpawnCount; i++)
 	{
 		FVector Location = FMath::RandPointInBox(GrassCoverage);

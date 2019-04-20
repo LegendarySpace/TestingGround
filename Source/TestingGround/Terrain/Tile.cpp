@@ -3,6 +3,7 @@
 #include "Tile.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "DrawDebugHelpers.h"
+#include "System/ActorPool.h"
 
 // Sets default values
 ATile::ATile()
@@ -12,25 +13,52 @@ ATile::ATile()
 
 }
 
-void ATile::BeginDestroy()
+// Called when the game starts or when spawned
+void ATile::BeginPlay()
 {
-	Super::BeginDestroy();
+	Super::BeginPlay();
+
+
+}
+
+void ATile::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	// Return Nav Mesh
+	UE_LOG(LogTemp, Warning, TEXT("%s Returning %s to pool"), *GetName(), *NavMeshBounds->GetName());
+	Pool->Return(NavMeshBounds);
+
 	for (size_t i = 0; i < Props.Num(); i++)
 	{
 		Props[i]->Destroy();
 	}
 }
 
-// Called when the game starts or when spawned
-void ATile::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 // Called every frame
 void ATile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void ATile::SetPool(UActorPool * InPool)
+{
+	Pool = InPool;
+
+	PositionNavMeshBounds();
+}
+
+void ATile::PositionNavMeshBounds()
+{
+	// TODO:: Fix location. Centering on tile origin, not Tile->Floor->Location
+	NavMeshBounds = Pool->Checkout();
+	if (NavMeshBounds == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Not Enough Actors in pool"));
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("%s Checkedout %s"), *GetName(), *NavMeshBounds->GetName());
+	NavMeshBounds->SetActorLocation(GetActorLocation());
 }
 
 void ATile::PlaceActors(TArray<FSpawner> ActorsToSpawn)
