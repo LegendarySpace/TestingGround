@@ -103,6 +103,8 @@ public:
 
 	void PositionNavMeshBounds();
 
+	FVector GetFloorOffset();
+
 	UFUNCTION(BlueprintCallable, Category = setup)
 	void PlaceActors(TArray<FSpawner> ActorsToSpawn);
 

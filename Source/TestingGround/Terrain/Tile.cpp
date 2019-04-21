@@ -4,6 +4,8 @@
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "DrawDebugHelpers.h"
 #include "System/ActorPool.h"
+#include "NavigationSystem.h"
+#include "../UnlimitedTerrainGameMode.h"
 
 // Sets default values
 ATile::ATile()
@@ -31,8 +33,12 @@ void ATile::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	for (size_t i = 0; i < Props.Num(); i++)
 	{
-		Props[i]->Destroy();
+		if (Props[i] != nullptr) Props[i]->Destroy();
 	}
+
+	// TODO:: Make sure the game mode isn't shutting down
+	auto GameMode = (AUnlimitedTerrainGameMode*) GetWorld()->GetAuthGameMode();
+	GameMode->SpawnNextTile();
 }
 
 // Called every frame
@@ -58,7 +64,15 @@ void ATile::PositionNavMeshBounds()
 		return;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("%s Checkedout %s"), *GetName(), *NavMeshBounds->GetName());
-	NavMeshBounds->SetActorLocation(GetActorLocation());
+	NavMeshBounds->SetActorLocation(GetActorLocation() + GetFloorOffset());
+	FNavigationSystem::Build(*GetWorld());
+}
+
+FVector ATile::GetFloorOffset()
+{
+	FVector Delta = (TileMax - TileMin) / 2;
+	UE_LOG(LogTemp, Warning, TEXT("Floor Offset is %f"), Delta.X);
+	return FVector(Delta.X, 0.f, 0.f);
 }
 
 void ATile::PlaceActors(TArray<FSpawner> ActorsToSpawn)
