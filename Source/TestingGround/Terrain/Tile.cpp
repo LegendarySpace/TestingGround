@@ -75,30 +75,42 @@ FVector ATile::GetFloorOffset()
 	return FVector(Delta.X, 0.f, 0.f);
 }
 
-void ATile::PlaceActors(TArray<FSpawner> ActorsToSpawn)
+void ATile::PlaceActors(TArray<FSpawnParameters> ActorsToSpawn)
 {
+	// Iterate through each actor type
 	for (size_t i = 0; i < ActorsToSpawn.Num(); i++)
 	{
 		if (ActorsToSpawn[i].isEmpty()) continue;
-		FSpawner SpawnInfo = ActorsToSpawn[i];
-		TSubclassOf<AActor> ToSpawn = SpawnInfo.SpawnClass;
+		FSpawnParameters SpawnInfo = ActorsToSpawn[i];
 		int32 NumberToSpawn = FMath::RandRange(SpawnInfo.SpawnMin, SpawnInfo.SpawnMax);
 
+		// Spawn each actor
 		for (size_t j = 0; j < NumberToSpawn; j++)
 		{
-			FVector SpawnPoint;
-			int Attempts = SpawnInfo.RandomScale ? 5 : 1;
+			FSpawnItem ItemToSpawn = FSpawnItem(&SpawnInfo);
+
+			// If actor can be scaled try spawing at different sizes
+			int Attempts = SpawnInfo.UseRandomScale ? 5 : 1;
 			for (size_t i = 0; i < Attempts; i++)
 			{
-				FVector RandomScale = SpawnInfo.UniformScale ? FVector(FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax)) : FVector(FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax), 
+				FVector RandomScale = SpawnInfo.UseUniformScale ? FVector(FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax)) : FVector(FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax), 
 							FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax), FMath::FRandRange(SpawnInfo.ScaleMin, SpawnInfo.ScaleMax));
-				FVector Scale = SpawnInfo.RandomScale ? RandomScale : FVector(1.f);
-				float Radius = FindObjectRadius(ToSpawn, Scale);
-				if (FindEmptyLocation(SpawnPoint, Radius))
+				ItemToSpawn.Scale = SpawnInfo.UseRandomScale ? RandomScale : FVector(1.f);
+
+				float Radius = FindObjectRadius(SpawnInfo.SpawnClass, ItemToSpawn.Scale);
+				if (FindEmptyLocation(ItemToSpawn.Location, Radius))
 				{
-					float Rotation = FMath::FRandRange(-180, 180);
-					Props.Push(PlaceActor(ToSpawn, SpawnPoint, Rotation, FVector(Scale)));
-					break;
+					ItemToSpawn.Rotation = FRotator(0.f, FMath::FRandRange(-180, 180), 0.f);
+					// If pawn spawn as AI, otherwise spawn actor
+					if (SpawnInfo.IsPawn)
+					{
+						PlaceAIPawn(ItemToSpawn);
+					}
+					else
+					{
+						Props.Push(PlaceActor(ItemToSpawn));
+						break;
+					}
 				}
 			}
 		}
@@ -141,14 +153,28 @@ bool ATile::FindEmptyLocation(FVector& OutLocation, float Radius)
 	return false;
 }
 
-AActor* ATile::PlaceActor(TSubclassOf<AActor> ToSpawn, FVector Location, float Rotation, FVector Scale)
+AActor* ATile::PlaceActor(FSpawnItem ActorInfo)
 {
-	FRotator Rot = FRotator(0.f, Rotation, 0.f);
-	AActor* Spawned = GetWorld()->SpawnActor<AActor>(ToSpawn);
-	Spawned->SetActorRelativeLocation(Location);
+	AActor* Spawned = GetWorld()->SpawnActor<AActor>(ActorInfo.Parameters->SpawnClass);
+	Spawned->SetActorRelativeLocation(ActorInfo.Location);
 	Spawned->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::KeepRelative, false));
-	Spawned->SetActorScale3D(FVector(Scale));
-	Spawned->SetActorRotation(Rot);
+	Spawned->SetActorScale3D(FVector(ActorInfo.Scale));
+	Spawned->SetActorRotation(ActorInfo.Rotation);
+	return Spawned;
+}
+
+APawn* ATile::PlaceAIPawn(FSpawnItem PawnInfo)
+{
+	APawn* Spawned = GetWorld()->SpawnActor<APawn>(PawnInfo.Parameters->SpawnClass);
+	Spawned->SetActorRelativeLocation(PawnInfo.Location);
+	Spawned->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::KeepRelative, false));
+	Spawned->SetActorScale3D(PawnInfo.Scale);
+	Spawned->SetActorRotation(PawnInfo.Rotation);
+	Spawned->SpawnDefaultController();
+	for (FName tag : PawnInfo.Parameters->Tags)
+	{
+		Spawned->Tags.Push(tag);
+	}
 	return Spawned;
 }
 

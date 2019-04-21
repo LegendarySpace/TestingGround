@@ -7,9 +7,49 @@
 #include "Tile.generated.h"
 
 class UActorPool;
+struct FSpawnParameters;
+
+
+
 
 USTRUCT(BlueprintType)
-struct FSpawner
+struct FSpawnItem
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spawn)
+		FVector Location;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spawn)
+		FRotator Rotation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spawn)
+		FVector Scale;
+
+	FSpawnParameters* Parameters;
+
+	FSpawnItem()
+	{
+		Location = FVector();
+		Rotation = FRotator();
+		Scale = FVector();
+		Parameters = nullptr;
+	}
+
+	FSpawnItem(FSpawnParameters* Param)
+	{
+		Location = FVector();
+		Rotation = FRotator();
+		Scale = FVector();
+		Parameters = Param;
+	}
+};
+
+
+
+USTRUCT(BlueprintType)
+struct FSpawnParameters
 {
 	GENERATED_BODY()
 
@@ -17,6 +57,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
 	TSubclassOf<AActor> SpawnClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
+	TArray<FName> Tags;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
 	int SpawnMin;
@@ -31,23 +74,27 @@ public:
 	float ScaleMax;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
-	bool RandomScale;
+	bool UseRandomScale;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
-	bool UniformScale;
+	bool UseUniformScale;
 
-	FSpawner()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
+		bool IsPawn;
+
+	FSpawnParameters()
 	{
 		SpawnClass = NULL;
 		SpawnMin = 0;
 		SpawnMax = 7;
 		ScaleMin = .25;
 		ScaleMax = 4;
-		RandomScale = false;
-		UniformScale = true;
+		UseRandomScale = false;
+		UseUniformScale = true;
+		IsPawn = false;
 	}
 	
-	bool operator==(const FSpawner& rightValue)
+	bool operator==(const FSpawnParameters& rightValue)
 	{
 		if (rightValue.SpawnClass == NULL) return false;
 		return true;
@@ -65,6 +112,9 @@ public:
 		return false;
 	}
 };
+
+
+
 
 UCLASS()
 class TESTINGGROUND_API ATile : public AActor
@@ -106,7 +156,7 @@ public:
 	FVector GetFloorOffset();
 
 	UFUNCTION(BlueprintCallable, Category = setup)
-	void PlaceActors(TArray<FSpawner> ActorsToSpawn);
+	void PlaceActors(TArray<FSpawnParameters> ActorsToSpawn);
 
 	UFUNCTION(BlueprintCallable, Category = setup)
 	bool SpawnAreaClear(FVector Location, float Radius);
@@ -115,7 +165,10 @@ public:
 	bool FindEmptyLocation(FVector& OutLocation, float Radius);
 
 	UFUNCTION(BlueprintCallable, Category = setup)
-	AActor* PlaceActor(TSubclassOf<AActor> ToSpawn, FVector Location, float Rotation, FVector Scale);
+	AActor* PlaceActor(FSpawnItem ActorInfo);
+
+	UFUNCTION(BlueprintCallable, Category = setup)
+	APawn* PlaceAIPawn(FSpawnItem PawnInfo);
 
 	UFUNCTION(BlueprintCallable, Category = setup)
 	float FindObjectRadius(TSubclassOf<AActor> ClassToCheck, FVector ScaleBounds = FVector::ZeroVector);
