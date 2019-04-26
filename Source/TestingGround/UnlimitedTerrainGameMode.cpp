@@ -19,12 +19,6 @@ AUnlimitedTerrainGameMode::AUnlimitedTerrainGameMode()
 	NavPool = CreateDefaultSubobject<UActorPool>(FName("Nav Pool"));
 }
 
-void AUnlimitedTerrainGameMode::AddToPool(ANavMeshBoundsVolume* NavMesh)
-{
-	UE_LOG(LogTemp, Warning, TEXT("%s Added %s to pool"), *GetName(), *NavMesh->GetName());
-	NavPool->Add(NavMesh);
-}
-
 void AUnlimitedTerrainGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -60,4 +54,14 @@ void AUnlimitedTerrainGameMode::PopulateBoundsVolumePool()
 		AddToPool(*NavMeshIter);
 		++NavMeshIter;
 	}
+}
+
+void AUnlimitedTerrainGameMode::TileConquered()
+{
+	PlayerScore += TileScore;
+}
+
+void AUnlimitedTerrainGameMode::AddToPool(ANavMeshBoundsVolume* NavMesh)
+{
+	NavPool->Add(NavMesh);
 }

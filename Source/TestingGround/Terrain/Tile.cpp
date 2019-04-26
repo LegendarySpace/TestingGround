@@ -28,7 +28,6 @@ void ATile::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	// Return Nav Mesh
-	UE_LOG(LogTemp, Warning, TEXT("%s Returning %s to pool"), *GetName(), *NavMeshBounds->GetName());
 	Pool->Return(NavMeshBounds);
 
 	for (size_t i = 0; i < Props.Num(); i++)
@@ -37,8 +36,11 @@ void ATile::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 
 	// TODO:: Make sure the game mode isn't shutting down
-	auto GameMode = (AUnlimitedTerrainGameMode*) GetWorld()->GetAuthGameMode();
-	GameMode->SpawnNextTile();
+	if (EndPlayReason == EEndPlayReason::Destroyed)
+	{
+		auto GameMode = (AUnlimitedTerrainGameMode*)GetWorld()->GetAuthGameMode();
+		GameMode->SpawnNextTile();
+	}
 }
 
 // Called every frame
@@ -63,7 +65,6 @@ void ATile::PositionNavMeshBounds()
 		UE_LOG(LogTemp, Error, TEXT("Not Enough Actors in pool"));
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("%s Checkedout %s"), *GetName(), *NavMeshBounds->GetName());
 	NavMeshBounds->SetActorLocation(GetActorLocation() + GetFloorOffset());
 	FNavigationSystem::Build(*GetWorld());
 }
@@ -71,7 +72,6 @@ void ATile::PositionNavMeshBounds()
 FVector ATile::GetFloorOffset()
 {
 	FVector Delta = (TileMax - TileMin) / 2;
-	UE_LOG(LogTemp, Warning, TEXT("Floor Offset is %f"), Delta.X);
 	return FVector(Delta.X, 0.f, 0.f);
 }
 
@@ -100,7 +100,6 @@ void ATile::PlaceActors(TArray<FSpawnParameters> ActorsToSpawn)
 				float Radius = FindObjectRadius(SpawnInfo.SpawnClass, ItemToSpawn.Scale);
 				if (FindEmptyLocation(ItemToSpawn.Location, Radius))
 				{
-					ItemToSpawn.Rotation = FRotator(0.f, FMath::FRandRange(-180, 180), 0.f);
 					// If pawn spawn as AI, otherwise spawn actor
 					if (SpawnInfo.IsPawn)
 					{
@@ -108,6 +107,7 @@ void ATile::PlaceActors(TArray<FSpawnParameters> ActorsToSpawn)
 					}
 					else
 					{
+						ItemToSpawn.Rotation = FRotator(0.f, FMath::FRandRange(-180, 180), 0.f);
 						Props.Push(PlaceActor(ItemToSpawn));
 						break;
 					}

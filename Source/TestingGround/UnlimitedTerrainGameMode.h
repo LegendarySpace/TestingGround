@@ -20,9 +20,6 @@ public:
 
 	void BeginPlay() override;
 
-	UFUNCTION(BlueprintCallable, Category = "Nav Pool")
-	void PopulateBoundsVolumePool();
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Tile)
 		TSubclassOf<class ATile> TileToSpawn;
 
@@ -32,11 +29,23 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Tile)
 		int32 TileCount = 3;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Score)
+		int32 PlayerScore = 0;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Score)
+		int32 TileScore = 10;
+
 	UFUNCTION(BlueprintCallable, Category = Tile)
 		void SpawnLoop();
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = Tile)
 		void SpawnNextTile();
+
+	UFUNCTION(BlueprintCallable, Category = "Nav Pool")
+		void PopulateBoundsVolumePool();
+
+	UFUNCTION(BlueprintCallable, Category = Tile)
+		void TileConquered();
 
 private:
 	UFUNCTION()

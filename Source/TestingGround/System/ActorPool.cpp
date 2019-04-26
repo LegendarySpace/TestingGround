@@ -18,8 +18,6 @@ AActor* UActorPool::Checkout()
 	{
 		return nullptr;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Pool count before checkout: %d"), Pool.Num());
-	UE_LOG(LogTemp, Warning, TEXT("Checking Out Actor, remaing in pool: %d"), Pool.Num()-1);
 	return Pool.Pop();
 }
 
@@ -30,7 +28,6 @@ void UActorPool::Return(AActor * ActorToReturn)
 		return;
 	}
 	Pool.Push(ActorToReturn);
-	UE_LOG(LogTemp, Warning, TEXT("Returning %s to Pool, Pool count: %d"), *ActorToReturn->GetName(), Pool.Num());
 }
 
 void UActorPool::Add(AActor * ActorToAdd)
@@ -40,5 +37,4 @@ void UActorPool::Add(AActor * ActorToAdd)
 		return;
 	}
 	Pool.Push(ActorToAdd);
-	UE_LOG(LogTemp, Warning, TEXT("Adding %s to Pool, Pool count: %d"), *ActorToAdd->GetName(), Pool.Num());
 }
