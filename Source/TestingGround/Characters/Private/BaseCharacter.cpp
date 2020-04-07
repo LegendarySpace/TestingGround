@@ -68,13 +68,16 @@ void ABaseCharacter::BeginPlay()
 	if (GetWorld() != NULL)
 	{
 		Weapon = GetWorld()->SpawnActor<AGunActor>(WeaponClass);
+		Weapon->setOwningPawn(this);
+		USkeletalMeshComponent* AttachmentMesh;
 		if (IsPlayerControlled()) {
-			Weapon->AttachToComponent(Mesh_Arms, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
-			// TODO::  Also add gun skeletal mesh on third person controller (invisible to player and destroyed on depossession), make gun visible to owner only until depossession
+			AttachmentMesh = Mesh_Arms;
 		}
 		else {
-			Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+			AttachmentMesh = GetMesh();
 		}
+		Weapon->AttachToComponent(AttachmentMesh, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+		// TODO::  Also add gun skeletal mesh on third person controller (invisible to player and destroyed on depossession), make gun visible to owner only until depossession
 		Weapon->TPAnimInstance = GetMesh()->GetAnimInstance();
 		Weapon->FPAnimInstance = Mesh_Arms->GetAnimInstance();
 	}
@@ -126,6 +129,24 @@ void ABaseCharacter::PullTrigger()
 	}
 
 	Weapon->TriggerDown();
+}
+
+void ABaseCharacter::TakeDamage_Implementation(float Damage, AController* Attacker)
+{
+	// Perform friendly fire checks
+	if (Attacker != nullptr)
+	{
+		auto AttackerTags = Attacker->GetPawn()->Tags;
+		bool FriendlyFire = (AttackerTags.Contains(FName("Enemy"))) && (Tags.Contains(FName("Enemy")));
+		if (FriendlyFire)
+		{
+			return;
+		}
+	}
+
+	// Apply damage
+	auto ClampedHealth = FMath::Clamp(FMath::RoundToInt(Damage), 0, CurrentHealth);
+	CurrentHealth -= ClampedHealth;
 }
 
 void ABaseCharacter::TurnAtRate(float Rate)

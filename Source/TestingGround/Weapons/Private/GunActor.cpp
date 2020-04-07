@@ -45,7 +45,6 @@ void AGunActor::TriggerDown_Implementation()
 	// Start triggerTimer  // Calculated must be < BurstRate * BurstInterval
 	GetWorld()->GetTimerManager().SetTimer(triggerTimer, this, &AGunActor::resetTrigger, calcMinTriggerDelay(), false);
 
-
 	if (BurstRate > 1)
 	{
 		timerArray = new FTimerHandle[BurstRate];
@@ -83,6 +82,8 @@ void AGunActor::OnFire_Implementation()
 
 			//Set Spawn Collision Handling Override
 			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.Instigator = OwningPawn; // TODO:: Retrieve the owning pawn
+			ActorSpawnParams.Owner = OwningPawn;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 			// spawn the projectile at the muzzle

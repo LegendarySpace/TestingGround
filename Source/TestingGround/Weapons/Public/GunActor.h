@@ -18,6 +18,9 @@ class TESTINGGROUND_API AGunActor : public AActor
 	/** Location on gun mesh where projectiles should spawn. */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	class USceneComponent* MuzzleLocation;
+
+	// TODO:: Set owner on spawn
+	APawn* OwningPawn = nullptr;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -81,6 +84,8 @@ public:
 	USoundBase* GetFireSound();
 
 	void setFireAnimation(UAnimMontage* mon) { FireAnimation = mon; }
+
+	void setOwningPawn(APawn* NewOwner) { OwningPawn = NewOwner; }
 
 private:
 	UAnimMontage* FireAnimation;

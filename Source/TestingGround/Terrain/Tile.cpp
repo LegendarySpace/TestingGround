@@ -100,7 +100,8 @@ void ATile::PlaceActors(TArray<FSpawnParameters> ActorsToSpawn)
 				float Radius = FindObjectRadius(SpawnInfo.SpawnClass, ItemToSpawn.Scale);
 				if (FindEmptyLocation(ItemToSpawn.Location, Radius))
 				{
-					// If pawn spawn as AI, otherwise spawn actor
+					// If AI spawn as pawn, otherwise spawn actor
+					//auto special = SpawnInfo.GetSpawnClass();
 					if (SpawnInfo.IsPawn)
 					{
 						PlaceAIPawn(ItemToSpawn);
@@ -166,6 +167,7 @@ AActor* ATile::PlaceActor(FSpawnItem ActorInfo)
 APawn* ATile::PlaceAIPawn(FSpawnItem PawnInfo)
 {
 	APawn* Spawned = GetWorld()->SpawnActor<APawn>(PawnInfo.Parameters->SpawnClass);
+	if (Spawned == nullptr) return Spawned;
 	Spawned->SetActorRelativeLocation(PawnInfo.Location);
 	Spawned->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::KeepRelative, false));
 	Spawned->SetActorScale3D(PawnInfo.Scale);

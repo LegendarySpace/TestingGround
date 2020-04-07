@@ -54,7 +54,6 @@ struct FSpawnParameters
 	GENERATED_BODY()
 
 public:
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
 	TSubclassOf<AActor> SpawnClass;
 

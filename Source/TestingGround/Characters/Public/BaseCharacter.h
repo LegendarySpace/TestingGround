@@ -66,6 +66,15 @@ protected:
 	virtual void UnPossessed() override;
 
 public:
+	// Max Health
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	int32 MaxHealth = 100;
+
+	// Current Health
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	int32 CurrentHealth = 100;
+
+
 	// Get the weapon for blueprint
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = Weapon)
 	AGunActor* GetWeapon();
@@ -73,5 +82,11 @@ public:
 	// Attempt to fire weapon
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void PullTrigger();
+
+	// Take damage
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = Character)
+	void TakeDamage(float Damage, AController* Attacker);
+
+	void TakeDamage_Implementation(float Damage, AController* Attacker);
 };
 
