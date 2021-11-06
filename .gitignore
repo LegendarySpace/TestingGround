@@ -13,3 +13,4 @@ Saved
 *.xcodeproj
 *.xcworkspace
 Content/Levels/FirstPersonExampleMap_BuiltData.uasset
+Content/LFS/Geometry/*
